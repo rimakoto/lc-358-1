@@ -28,22 +28,22 @@ export function SnowScene() {
         }}
         dpr={[1, 2]}
       >
-        <color attach="background" args={['#c5d5e5']} />
+        <color attach="background" args={['#b8c8d8']} />
 
-        <fog attach="fog" args={['#b8c8d8', 28, 75]} />
+        <fog attach="fog" args={['#a8b8c8', 30, 70]} />
 
-        <ambientLight intensity={0.8} color="#e8f0ff" />
+        <ambientLight intensity={0.55} color="#e0eaff" />
 
         <hemisphereLight
-          color="#d8e8f8"
-          groundColor="#eef2ea"
-          intensity={0.9}
+          color="#c8d8e8"
+          groundColor="#e8ecf0"
+          intensity={0.6}
         />
 
         <directionalLight
-          position={[12, 18, 10]}
-          intensity={1.8}
-          color="#fff8ee"
+          position={[8, 22, 6]}
+          intensity={2.6}
+          color="#fff5e8"
           castShadow
           shadow-mapSize-width={2048}
           shadow-mapSize-height={2048}
@@ -52,21 +52,21 @@ export function SnowScene() {
           shadow-camera-top={TERRAIN_SIZE / 2}
           shadow-camera-bottom={-TERRAIN_SIZE / 2}
           shadow-camera-near={0.5}
-          shadow-camera-far={60}
-          shadow-bias={-0.0005}
-          shadow-normalBias={0.02}
+          shadow-camera-far={80}
+          shadow-bias={-0.0008}
+          shadow-normalBias={0.03}
         />
 
         <directionalLight
-          position={[-8, 10, -6]}
-          intensity={0.45}
-          color="#e0ecff"
-        />
-
-        <directionalLight
-          position={[0, 8, -12]}
+          position={[-10, 14, -8]}
           intensity={0.35}
-          color="#f0f4ff"
+          color="#d0e0ff"
+        />
+
+        <directionalLight
+          position={[0, 6, -14]}
+          intensity={0.25}
+          color="#e0eaf5"
         />
 
         <GradientSky />
@@ -113,10 +113,10 @@ export function SnowScene() {
 function GradientSky() {
   const uniforms = useMemo(
     () => ({
-      topColor: { value: new THREE.Color('#a8c4d8') },
-      bottomColor: { value: new THREE.Color('#e8f0f8') },
-      offset: { value: 33 },
-      exponent: { value: 0.8 },
+      topColor: { value: new THREE.Color('#8098b0') },
+      bottomColor: { value: new THREE.Color('#d8e4f0') },
+      offset: { value: 25 },
+      exponent: { value: 0.65 },
     }),
     [],
   )
