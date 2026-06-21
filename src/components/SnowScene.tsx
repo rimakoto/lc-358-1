@@ -1,6 +1,6 @@
-import { Suspense, useMemo } from 'react'
+import { useMemo } from 'react'
 import { Canvas } from '@react-three/fiber'
-import { OrbitControls, Sky, Environment } from '@react-three/drei'
+import { OrbitControls } from '@react-three/drei'
 import { EffectComposer, Bloom, ToneMapping } from '@react-three/postprocessing'
 import * as THREE from 'three'
 import { SnowTerrain } from './SnowTerrain'
@@ -23,100 +23,139 @@ export function SnowScene() {
         gl={{
           antialias: true,
           toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1.05,
+          toneMappingExposure: 1.15,
           powerPreference: 'high-performance',
         }}
         dpr={[1, 2]}
       >
-        <Suspense fallback={null}>
-          <color attach="background" args={['#c8d8e8']} />
+        <color attach="background" args={['#c5d5e5']} />
 
-          <fog attach="fog" args={['#b8c8d8', 25, 70]} />
+        <fog attach="fog" args={['#b8c8d8', 28, 75]} />
 
-          <Sky
-            distance={450000}
-            sunPosition={[15, 12, 8]}
-            inclination={0.48}
-            azimuth={0.25}
-            turbidity={10}
-            rayleigh={2.5}
-            mieCoefficient={0.005}
-            mieDirectionalG={0.8}
+        <ambientLight intensity={0.8} color="#e8f0ff" />
+
+        <hemisphereLight
+          color="#d8e8f8"
+          groundColor="#eef2ea"
+          intensity={0.9}
+        />
+
+        <directionalLight
+          position={[12, 18, 10]}
+          intensity={1.8}
+          color="#fff8ee"
+          castShadow
+          shadow-mapSize-width={2048}
+          shadow-mapSize-height={2048}
+          shadow-camera-left={-TERRAIN_SIZE / 2}
+          shadow-camera-right={TERRAIN_SIZE / 2}
+          shadow-camera-top={TERRAIN_SIZE / 2}
+          shadow-camera-bottom={-TERRAIN_SIZE / 2}
+          shadow-camera-near={0.5}
+          shadow-camera-far={60}
+          shadow-bias={-0.0005}
+          shadow-normalBias={0.02}
+        />
+
+        <directionalLight
+          position={[-8, 10, -6]}
+          intensity={0.45}
+          color="#e0ecff"
+        />
+
+        <directionalLight
+          position={[0, 8, -12]}
+          intensity={0.35}
+          color="#f0f4ff"
+        />
+
+        <GradientSky />
+
+        <SnowTerrain />
+
+        <Snowflakes />
+
+        <DistantTrees />
+
+        <OrbitControls
+          enableDamping
+          dampingFactor={0.08}
+          minDistance={5}
+          maxDistance={40}
+          minPolarAngle={0.15}
+          maxPolarAngle={Math.PI / 2 - 0.08}
+          target={[0, 0, 0]}
+          enablePan
+          panSpeed={0.6}
+          rotateSpeed={0.5}
+          zoomSpeed={0.8}
+        />
+
+        <EffectComposer multisampling={0}>
+          <Bloom
+            intensity={0.4}
+            luminanceThreshold={0.9}
+            luminanceSmoothing={0.9}
+            mipmapBlur
+            radius={0.7}
           />
-
-          <Environment preset="dawn" />
-
-          <ambientLight intensity={0.55} color="#e8f0ff" />
-
-          <hemisphereLight
-            color="#d8e8f8"
-            groundColor="#f0f4f0"
-            intensity={0.45}
+          <ToneMapping
+            averageLuminance={0.6}
+            maxLuminance={1.4}
+            middleGrey={0.7}
           />
-
-          <directionalLight
-            position={[12, 18, 10]}
-            intensity={1.4}
-            color="#fff8ee"
-            castShadow
-            shadow-mapSize-width={2048}
-            shadow-mapSize-height={2048}
-            shadow-camera-left={-TERRAIN_SIZE / 2}
-            shadow-camera-right={TERRAIN_SIZE / 2}
-            shadow-camera-top={TERRAIN_SIZE / 2}
-            shadow-camera-bottom={-TERRAIN_SIZE / 2}
-            shadow-camera-near={0.5}
-            shadow-camera-far={60}
-            shadow-bias={-0.0005}
-            shadow-normalBias={0.02}
-          />
-
-          <directionalLight
-            position={[-8, 10, -6]}
-            intensity={0.25}
-            color="#e0ecff"
-          />
-
-          <SnowTerrain />
-
-          <Snowflakes />
-
-          <DistantTrees />
-
-          <OrbitControls
-            enableDamping
-            dampingFactor={0.08}
-            minDistance={5}
-            maxDistance={40}
-            minPolarAngle={0.15}
-            maxPolarAngle={Math.PI / 2 - 0.08}
-            target={[0, 0, 0]}
-            enablePan
-            panSpeed={0.6}
-            rotateSpeed={0.5}
-            zoomSpeed={0.8}
-          />
-
-          <EffectComposer multisampling={0}>
-            <Bloom
-              intensity={0.35}
-              luminanceThreshold={0.85}
-              luminanceSmoothing={0.9}
-              mipmapBlur
-              radius={0.6}
-            />
-            <ToneMapping
-              adaptive
-              averageLuminance={0.4}
-              minLuminance={0.2}
-              maxLuminance={1.6}
-              middleGrey={0.7}
-            />
-          </EffectComposer>
-        </Suspense>
+        </EffectComposer>
       </Canvas>
     </div>
   )
+}
+
+function GradientSky() {
+  const uniforms = useMemo(
+    () => ({
+      topColor: { value: new THREE.Color('#a8c4d8') },
+      bottomColor: { value: new THREE.Color('#e8f0f8') },
+      offset: { value: 33 },
+      exponent: { value: 0.8 },
+    }),
+    [],
+  )
+
+  const skyGeo = useMemo(
+    () => new THREE.SphereGeometry(90, 32, 15),
+    [],
+  )
+
+  const skyMat = useMemo(
+    () =>
+      new THREE.ShaderMaterial({
+        uniforms,
+        vertexShader: `
+          varying vec3 vWorldPosition;
+          void main() {
+            vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+            vWorldPosition = worldPosition.xyz;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: `
+          uniform vec3 topColor;
+          uniform vec3 bottomColor;
+          uniform float offset;
+          uniform float exponent;
+          varying vec3 vWorldPosition;
+          void main() {
+            float h = normalize(vWorldPosition + offset).y;
+            gl_FragColor = vec4(mix(bottomColor, topColor, max(pow(max(h, 0.0), exponent), 0.0)), 1.0);
+          }
+        `,
+        side: THREE.BackSide,
+        depthWrite: false,
+      }),
+    [uniforms],
+  )
+
+  return <mesh geometry={skyGeo} material={skyMat} />
 }
 
 function DistantTrees() {
